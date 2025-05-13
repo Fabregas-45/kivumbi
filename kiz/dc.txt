@@ -1,0 +1,78 @@
+
+7.CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  role ENUM('admin', 'user') NOT NULL
+);
+
+CREATE DATABASE library_db;
+
+USE library_db;
+
+CREATE TABLE publisher (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255)
+  contact VARCHAR(50)
+);
+
+CREATE TABLE books (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255),
+  publisher_id INT,
+supplier_id INT,   
+  description TEXT,
+  FOREIGN KEY (publisher_id) REFERENCES publisher(id)
+FOREIGN KEY (supplier_id) REFERENCES supplier(id)
+);
+
+CREATE TABLE supplier (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255)
+  address VARCHAR(255)
+);
+
+CREATE TABLE store (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  book_id INT,
+  quantity INT,
+  FOREIGN KEY (book_id) REFERENCES books(id)
+);
+
+CREATE TABLE borrows (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  book_id INT,
+  borrower_name VARCHAR(255),
+  borrow_date DATE,
+  return_date DATE,
+  FOREIGN KEY (book_id) REFERENCES books(id)
+);
+
+CREATE TABLE book_supplier (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  book_id INT,
+  supplier_id INT,
+  FOREIGN KEY (book_id) REFERENCES books(id),
+  FOREIGN KEY (supplier_id) REFERENCES supplier(id)
+);
+
+
+on borrows table
+DELIMITER $$
+
+CREATE TRIGGER check_user_role_before_borrow
+BEFORE INSERT ON borrows
+FOR EACH ROW
+BEGIN
+  DECLARE userRole ENUM('admin','user');
+
+  SELECT role INTO userRole FROM users WHERE id = NEW.user_id;
+
+  IF userRole != 'user' THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Only users with role=user can borrow books.';
+  END IF;
+END$$
+
+DELIMITER ;
+

@@ -1,32 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import API from '../services/api';
+import axios from 'axios';
 
 export default function Publisher() {
   const [publishers, setPublishers] = useState([]);
   const [form, setForm] = useState({ name: '', address: '' });
   const [editingId, setEditingId] = useState(null);
 
-  
   useEffect(() => {
     fetchPublishers();
   }, []);
 
   const fetchPublishers = async () => {
     try {
-      const res = await API.get('/publisher');
+      const res = await axios.get('http://localhost:5000/api/publisher');
       setPublishers(res.data);
     } catch (err) {
       console.error('Error loading publishers:', err);
     }
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingId) {
-        await API.put(`/publisher/${editingId}`, form);
+        await axios.put(`http://localhost:5000/api/publisher/${editingId}`, form);
       } else {
-        await API.post('/publisher', form);
+        await axios.post('http://localhost:5000/api/publisher', form);
       }
       setForm({ name: '', address: '' });
       setEditingId(null);
@@ -36,9 +35,21 @@ export default function Publisher() {
     }
   };
 
-  const handleEdit = pub => {
+  const handleEdit = (pub) => {
     setForm({ name: pub.name, address: pub.address });
     setEditingId(pub.id);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this publisher?')) {
+      try {
+        await axios.delete(`http://localhost:5000/api/publisher/${id}`);
+        fetchPublishers(); 
+      } catch (err) {
+        console.error('Error deleting publisher:', err);
+        alert('Failed to delete publisher');
+      }
+    }
   };
 
   return (
@@ -51,7 +62,7 @@ export default function Publisher() {
           className="border rounded p-2"
           placeholder="Name"
           value={form.name}
-          onChange={e => setForm({ ...form, name: e.target.value })}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
           required
         />
         <input
@@ -59,7 +70,7 @@ export default function Publisher() {
           className="border rounded p-2"
           placeholder="Address"
           value={form.address}
-          onChange={e => setForm({ ...form, address: e.target.value })}
+          onChange={(e) => setForm({ ...form, address: e.target.value })}
           required
         />
         <button type="submit" className="bg-indigo-600 text-white py-2 rounded">
@@ -68,18 +79,26 @@ export default function Publisher() {
       </form>
 
       <ul className="space-y-3">
-        {publishers.map(pub => (
-          <li key={pub.id} className="flex justify-between bg-gray-100 p-4 rounded shadow">
+        {publishers.map((pub) => (
+          <li key={pub.id} className="flex justify-between items-center bg-gray-100 p-4 rounded shadow">
             <div>
               <p className="font-semibold">{pub.name}</p>
               <p className="text-sm">{pub.address}</p>
             </div>
-            <button
-              onClick={() => handleEdit(pub)}
-              className="bg-yellow-400 px-3 py-1 rounded"
-            >
-              Edit
-            </button>
+            <div className="space-x-2">
+              <button
+                onClick={() => handleEdit(pub)}
+                className="bg-yellow-400 px-3 py-1 rounded"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(pub.id)}
+                className="bg-red-500 text-white px-3 py-1 rounded"
+              >
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>

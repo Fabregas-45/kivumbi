@@ -1,25 +1,41 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+//imports
+import authRoutes from './routes/auth.js';
+import booksRoutes from './routes/books.js';
+import publisherRoutes from './routes/publisher.js';
+import supplierRoutes from './routes/supplier.js';
+import storeRoutes from './routes/store.js';
+import borrowsRoutes from './routes/borrows.js';
+import book_supplierRoutes from './routes/book_supplier.js';
+
+dotenv.config();
+
 const app = express();
-dotenv.config()
-
 const port = process.env.PORT || 5000;
+
+
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); 
 
-const books = require('./routes/books');
-const publisher = require('./routes/publisher');
-const supplier = require('./routes/supplier');
-const store = require('./routes/store');
-const borrows = require('./routes/borrows');
-const bookSupplier = require('./routes/bookSupplier');
 
-app.use('/books', books);
-app.use('/publisher', publisher);
-app.use('/supplier', supplier);
-app.use('/store', store);
-app.use('/brow', borrows);
-app.use('/book-supplier', bookSupplier);
+app.use('/api/auth', authRoutes);
+app.use('/api/books', booksRoutes);
+app.use('/api/publisher', publisherRoutes);
+app.use('/api/supplier', supplierRoutes);
+app.use('/api/store', storeRoutes);           
+app.use('/api/borrows', borrowsRoutes);
+app.use('/api/book-supplier', book_supplierRoutes);
 
-app.listen(port, () => console.log(`Server running on port ${port}`));
+
+
+app.get('/', (req, res) => {
+  res.send(' Library Management API is running!');
+});
+
+
+app.listen(port, () => {
+  console.log(` Server running on http://localhost:${port}`);
+});
